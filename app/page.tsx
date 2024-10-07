@@ -17,8 +17,8 @@ const libraries = ['places']; // Autocompleteを使用するために'places'ラ
 
 const MapComponent: React.FC = () => {
   const [directionsResponse, setDirectionsResponse] = useState<google.maps.DirectionsResult | null>(null);
-  const [origin, setOrigin] = useState<string>('');
-  const [destination, setDestination] = useState<string>('');
+  const [origin, setOrigin] = useState<google.maps.LatLngLiteral | null>(null);
+  const [destination, setDestination] = useState<google.maps.LatLngLiteral | null>(null);
   const originRef = useRef<google.maps.places.Autocomplete | null>(null);
   const destinationRef = useRef<google.maps.places.Autocomplete | null>(null);
 
@@ -35,12 +35,12 @@ const MapComponent: React.FC = () => {
         destination: destination,
         travelMode: google.maps.TravelMode.DRIVING,
         drivingOptions: {
-          departureTime: new Date(), // 現在の時間を基にしたルート計算
+          departureTime: new Date(),
           trafficModel: 'pessimistic',
         },
       },
       (result, status) => {
-        if (status === google.maps.DirectionsStatus.OK && result) {
+        if (status === 'OK' && result) {
           setDirectionsResponse(result);
         } else {
           console.error(`error fetching directions ${status}`);
@@ -56,7 +56,12 @@ const MapComponent: React.FC = () => {
   const onPlaceChangedOrigin = () => {
     if (originRef.current) {
       const place = originRef.current.getPlace();
-      setOrigin(place.formatted_address || '');
+      if (place.geometry && place.geometry.location) {
+        setOrigin({
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        });
+      }
     }
   };
 
@@ -67,7 +72,12 @@ const MapComponent: React.FC = () => {
   const onPlaceChangedDestination = () => {
     if (destinationRef.current) {
       const place = destinationRef.current.getPlace();
-      setDestination(place.formatted_address || '');
+      if (place.geometry && place.geometry.location) {
+        setDestination({
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        });
+      }
     }
   };
 
@@ -78,15 +88,17 @@ const MapComponent: React.FC = () => {
           <Autocomplete onLoad={onLoadOrigin} onPlaceChanged={onPlaceChangedOrigin}>
             <input
               type="text"
-              placeholder="Enter origin"
-              className="input-text w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg shadow-sm"
+              placeholder="Enter origin (address or station)"
+              className="input-text w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg shadow-sm mb-2"
             />
           </Autocomplete>
+        </div>
+        <div className="w-full max-w-4xl mb-6">
           <Autocomplete onLoad={onLoadDestination} onPlaceChanged={onPlaceChangedDestination}>
             <input
               type="text"
-              placeholder="Enter destination"
-              className="input-text w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg shadow-sm"
+              placeholder="Enter destination (address or station)"
+              className="input-text w-full sm:w-1/2 p-2 border border-gray-300 rounded-lg shadow-sm mb-2"
             />
           </Autocomplete>
         </div>
