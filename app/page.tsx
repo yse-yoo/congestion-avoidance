@@ -33,7 +33,7 @@ const MapComponent: React.FC = () => {
       {
         origin: origin,
         destination: destination,
-        travelMode: google.maps.TravelMode.DRIVING,
+        travelMode: google.maps.TravelMode.WALKING,
         drivingOptions: {
           departureTime: new Date(),
           trafficModel: 'pessimistic',
